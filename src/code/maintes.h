@@ -5,24 +5,6 @@
 int PWMR1 = 6;//barat
 int PWML1 = 7;//timur
 
-void barat () {
-// barat
-analogWrite(PWMR1, 255);
-analogWrite(PWML1, 0);
-}
-
-void timur () {
-// timur
-analogWrite(PWMR1, 0);
-analogWrite(PWML1, 255);
-}
-
-void stop () {
-  //stop
-  analogWrite(PWMR1, 0)
-  analogWrite(PWMR1, 0)
-}
-
 void setup() {
   // put your setup code here, to run once:
   pinMode(PWMR1, OUTPUT);
@@ -32,9 +14,13 @@ void setup() {
 
 void loop() {
   // arah posisi pergerakan mengikuti pembacaan LCD dan RTC
+// timur
+// analogWrite(PWMR1, 0);
+// analogWrite(PWML1, 255);
 
-
-
+//barat
+analogWrite(PWMR1, 255);
+analogWrite(PWML1, 0);
 
 
 }
