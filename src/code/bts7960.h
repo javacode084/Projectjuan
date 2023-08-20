@@ -19,8 +19,8 @@ analogWrite(PWML1, 255);
 
 void stop () {
   //stop
-  analogWrite(PWMR1, 0)
-  analogWrite(PWMR1, 0)
+  analogWrite(PWMR1, 0);
+  analogWrite(PWMR1, 0);
 }
 
 void setup() {

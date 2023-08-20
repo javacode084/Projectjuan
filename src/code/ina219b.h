@@ -2,7 +2,7 @@
 #include <Wire.h>
 #include <Adafruit_INA219.h>
 
-Adafruit_INA219 ina219_B(0x44);
+Adafruit_INA219 ina219_B(0x41);
 
 
 void setup(void) 

@@ -4,9 +4,13 @@
 LiquidCrystal_I2C lcd(0x27, 20, 4); // Alamat I2C(0x27) LCD dan Jenis LCD (20x4)
 // Date and time functions using a DS3231 RTC connected via I2C and Wire lib
 #include "RTClib.h"
+byte RHour = 0;
+byte RMinute = 0;
+byte RSecond = 0;
+
 
 RTC_DS3231 rtc;
-char daysOfTheWeek[7][12] = {"Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"};
+char daysOfTheWeek[7][12] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
 void readjam()
 {
   DateTime now = rtc.now();
@@ -42,6 +46,9 @@ void readjam()
     lcd.print(now.second(), DEC);
     // calculate a date which is 7 days, 12 hours, 30 minutes, 6 seconds into the future
     DateTime future (now + TimeSpan(7,12,30,6));
+  
+  
+
 
     Serial.print("Temperature: ");
     Serial.print(rtc.getTemperature());
@@ -90,4 +97,6 @@ void setup () {
 
 void loop () {
     readjam();
+  
+
 }

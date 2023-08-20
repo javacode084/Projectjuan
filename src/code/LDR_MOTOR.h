@@ -5,10 +5,37 @@ LiquidCrystal_I2C lcd(0x27, 20, 4); // Alamat I2C(0x27) LCD dan Jenis LCD (20x4)
 #define LDRT A0                 // Deklarasi LDR pada pin A0
 #define LDRB A1
 
-
+// pembacaan LDR
 int nilaildrt;
 int nilaildrb;
 
+// nilai LDR
+int T=500;
+int B=500;
+
+
+
+int PWMR1 = 6;//barat
+int PWML1 = 7;//timur
+
+
+void barat () {
+// barat
+analogWrite(PWMR1, 255);
+analogWrite(PWML1, 0);
+}
+
+void timur () {
+// timur
+analogWrite(PWMR1, 0);
+analogWrite(PWML1, 255);
+}
+
+void stop () {
+  //stop
+  analogWrite(PWMR1, 0);
+  analogWrite(PWMR1, 0);
+}
 
 void bacaLDR()
 {
@@ -16,6 +43,7 @@ nilaildrt=analogRead(LDRT);
 nilaildrb=analogRead(LDRB);
 
 }
+
 
 
 void setup() {
@@ -34,6 +62,8 @@ void setup() {
   delay(500);
   pinMode(LDRT,INPUT);
   pinMode(LDRB,INPUT);
+  pinMode(PWMR1, OUTPUT);
+  pinMode(PWML1, OUTPUT);
 }
 void loop() {
     bacaLDR();  
@@ -52,5 +82,21 @@ void loop() {
     delay(1000);
     
     Serial.print("nilai LDR Timur: ");Serial.print(nilaildrt);
-    Serial.print(" nilai LDR Barat: ");Serial.println(nilaildrb);   
+    Serial.print("nilai LDR Barat: ");Serial.println(nilaildrb); 
+    
+    if (nilaildrb>=B)
+    {
+        timur();
+    }
+    else if (nilaildrt>=T)
+    {
+        barat();
+    }
+    else if (nilaildrb<B && nilaildrt<T)
+    {
+        stop();
+    }
+    else    {
+        stop();
+    }
 } 

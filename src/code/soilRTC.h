@@ -1,16 +1,19 @@
-#include <Arduino.h>
-#include <Wire.h>              // Memanggil library wire.h
+// https://duwiarsana.com/membuat-penyiram-tanaman-otomatis/
+#include<Wire.h>
+#include<Arduino.h>
+
 #include <LiquidCrystal_I2C.h> // Memanggil library LCD dengan I2C
 LiquidCrystal_I2C lcd(0x27, 20, 4); // Alamat I2C(0x27) LCD dan Jenis LCD (20x4)
 // Date and time functions using a DS3231 RTC connected via I2C and Wire lib
 #include "RTClib.h"
 #include <SPI.h>
-// #define Pompa 2
-RTC_DS3231 rtc;
 
-const DateTime m_start = DateTime(2000, 1, 1, 16, 13, 0); ///< time when realy turn on
-const DateTime m_stop = DateTime(2000, 1, 1, 16, 20, 0); ///< time when realy turn off
-const int r_output_pin = A7; ///< pin connected to relay
+RTC_DS3231 rtc;
+int pompa = A9; //NO relay ke pompa
+
+const DateTime m_start = DateTime(2000, 1, 1, 19, 58, 0); ///< time when realy turn on
+const DateTime m_stop = DateTime(2000, 1, 1, 20, 05, 0); ///< time when realy turn off
+const int r_output_pin = A8; ///< com pin connected relay to relay
 const uint8_t m_min_in_h = 60; ///< minutes in an hour
 const unsigned long m_refresh_time_ms = 1000; ///< time of repeting check time is in range and sending message
 char daysOfTheWeek[7][12] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
@@ -79,8 +82,29 @@ void readjam()
 }
 
 
-void setup () {
-  Serial.begin(57600);
+void readsoil()
+{
+int soil =analogRead(A7);
+delay(2000);
+Serial.println(soil);
+
+if(soil<=250)
+{
+  digitalWrite(pompa,LOW);
+// onsiram
+}
+else{
+  digitalWrite(pompa,HIGH);
+  // offsiram
+}
+}
+
+
+
+void setup() {
+  // put your setup code here, to run once:
+// Serial.begin(9600);
+Serial.begin(57600);
   lcd.init();             // instruksi untuk memulai LCD
   lcd.begin(20,4);        // instruksi untuk menggunakan lcd 20x4
   lcd.backlight();        // instruksi untuk mengaktifkan lampu latar LCD
@@ -93,11 +117,7 @@ void setup () {
   lcd.setCursor(3,3);
   lcd.print("SOLAR TRACKER");
   delay(500);
-// #ifndef ESP8266
-//   while (!Serial); // wait for serial port to connect. Needed for native USB
-// #endif
-
-  if (! rtc.begin()) {
+if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
     Serial.flush();
     while (1) delay(10);
@@ -114,9 +134,19 @@ void setup () {
   // following line sets the RTC to the date & time this sketch was compiled
   // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
  pinMode(r_output_pin, OUTPUT);
+ pinMode(pompa, OUTPUT);
+// pinMode(pompa,OUTPUT);
 }
 
-void loop () {
-     readjam();
-         
+void loop() {
+  unsigned long waktusekarang1=millis(); //task SensorINA219B
+  unsigned long waktusebelumnya1=0;
+
+  if(waktusekarang1-waktusebelumnya1>0)
+{
+    readjam();
+    readsoil();
+    waktusebelumnya1=waktusekarang1;
+}      
+  
 }

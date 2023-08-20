@@ -11,11 +11,12 @@ Adafruit_INA219 ina219b (0x41);
 LiquidCrystal_I2C lcd(0x27, 20, 4); // Alamat I2C(0x27) LCD dan Jenis LCD (20x4)
 
 RTC_DS3231 rtc;
-int pompa = A9; //ke pompa
+const int r_pompa = A8; ///< pin connected to relay
+const int pompa = A9; //ke pompa
 
-#define LDRT A0                 // Deklarasi LDR pada pin A0
+#define LDRT A0                 // Deklarasi LDR pada pin Ard
 #define LDRB A1
-#define LDRU A2                 // Deklarasi LDR pada pin A0
+#define LDRU A2                 
 #define LDRS A3
 
 // pembacaan LDR
@@ -24,20 +25,19 @@ int nilaildrb;
 int nilaildru;
 int nilaildrs;
 
-// nilai LDR
-int Ti=400;
-int Ba=400;
-int Ut=400;
-int Se=400;
+// setpoint nilai LDR
+const int Ti=400;
+const int Ba=400;
+const int Ut=400;
+const int Se=400;
 
 int PWMR1 = 2;//barat
 int PWML1 = 3;//timur
 int PWMR2 = 4;//utara
 int PWML2 = 5;//selatan
 
-const DateTime m_start = DateTime(2000, 1, 1, 2, 55, 0); ///< time when realy turn on
-const DateTime m_stop = DateTime(2000, 1, 1, 2, 56, 0); ///< time when realy turn off
-const int r_pompa = A8; ///< pin connected to relay
+const DateTime m_start = DateTime(2000, 1, 1, 21,53, 0); ///< time when realy turn on
+const DateTime m_stop = DateTime(2000, 1, 1, 21, 55, 0); ///< time when realy turn off
 const uint8_t m_min_in_h = 60; ///< minutes in an hour
 const unsigned long m_refresh_time_ms = 1000; ///< time of repeting check time is in range and sending message
 char daysOfTheWeek[7][12] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
@@ -92,7 +92,7 @@ void readjam()
     // calculate a date which is 7 days, 12 hours, 30 minutes, 6 seconds into the future
     DateTime future (now + TimeSpan(7,12,30,6));
     
-
+  
     static bool is_turn_on = true;
     if (is_in_range(now, m_start, m_stop) && !is_turn_on)
     {
@@ -100,14 +100,13 @@ void readjam()
       lcd.clear();lcd.setCursor(7,0);lcd.print("Pump On");
       digitalWrite(r_pompa, LOW);
       is_turn_on = true;
-    }
+      }
     else if (!is_in_range(now, m_start, m_stop) && is_turn_on)
     {
       Serial.println("Stop");
       lcd.setCursor(7,0);lcd.print("Pump Off");
       digitalWrite(r_pompa, HIGH);
-      is_turn_on = false;
-  
+      is_turn_on = false; 
     }
   }  
   
@@ -181,38 +180,37 @@ void read_219b()
     // delay(2000);
 }
 
-
-void barat () {
+void mbarat () {
 // barat
 analogWrite(PWMR1, 255);
 analogWrite(PWML1, 0);
 }
 
-void timur () {
+void mtimur () {
 // timur
 analogWrite(PWMR1, 0);
 analogWrite(PWML1, 255);
 }
 
-void utara () {
+void mutara () {
 // utara
 analogWrite(PWMR2, 0);
 analogWrite(PWML2, 255);
 }
 
-void selatan () {
+void mselatan () {
 // selatan
 analogWrite(PWMR2, 255);
 analogWrite(PWML2, 0);
 }
 
-void stop2 () {
+void mstop2 () {
   //stop utara selatan
   analogWrite(PWMR2, 0);
   analogWrite(PWMR2, 0);
 }
 
-void stop1 () {
+void mstop1 () {
   //stop motor timur barat
   analogWrite(PWMR1, 0);
   analogWrite(PWMR1, 0);
@@ -252,19 +250,25 @@ nilaildrs=analogRead(LDRS);
     
 }
 
-void readsoil()
+void siram()
 {
-int soil =analogRead(A7);
-delay(2000);
+int soil =analogRead(A7); //pin sensor soil
+lcd.setCursor(14,1);lcd.print("Lb:"),lcd.print(soil);
 Serial.println(soil);
+// delay(2000);
 
-if(soil<=250)
+// lcd.setCursor(7,0);lcd.print("Tanah");
+if(soil<=400)
 {
   digitalWrite(pompa,LOW);
+  // startpompa=true;
+  lcd.setCursor(7,0);lcd.print("Tanah basah");
 // onsiram
 }
 else{
   digitalWrite(pompa,HIGH);
+  // startpompa=false;
+  lcd.setCursor(7,0);lcd.print("Tanah kering");
   // offsiram
 }
 }
@@ -330,10 +334,10 @@ void loop() {
     unsigned long waktusebelumnya3=0;
     unsigned long waktusebelumnya4=0;
 
-if(waktusekarang1-waktusebelumnya1>0)
+if(waktusekarang1-waktusebelumnya1>1000)
 {
     readjam();
-    readsoil();
+    siram();
     waktusebelumnya1=waktusekarang1;
 }
 
@@ -343,42 +347,43 @@ if(waktusekarang2-waktusebelumnya2>1000)
     waktusebelumnya2=waktusekarang2;
     if (nilaildrb>=Ba)
     {
-        timur();
+        mtimur();
     }
     else if (nilaildrt>=Ti)
     {
-        barat();
+        mbarat();
     }
-    // else if (nilaildrb<Ba && nilaildrt<Ti)
-    // {
-    //     stop1();
-    // }
+    else if (nilaildrb<Ba && nilaildrt<Ti)
+    {
+        mstop1();
+    }
     else    {
-        stop1();
+        mstop1();
     }
 
-    // if (nilaildru>=Ut)
-    // {
-    //     selatan();
-    // }
-    // else if (nilaildrs>=Se)
-    // {
-    //     utara();
-    // }
-    // else if (nilaildru>Ut && nilaildrs>Se)
-    // {
-    //     stop2();
-    // }
-    // else 
-    // {
-    //     stop2();
-    // }
-
+    if (nilaildru>=Ut)
+    {
+        mselatan();
+    }
+    else if (nilaildrs>=Se)
+    {
+        mutara();
+    }
+    else if (nilaildru>Ut && nilaildrs>Se)
+    {
+        mstop2();
+    }
+    else 
+    {
+        mstop2();
+    }
 }
+
 
 if(waktusekarang3-waktusebelumnya3>1500)
 {
     read_219a();
+    read_219b();
     waktusebelumnya3=waktusekarang3;
     delay(2000);
 }
@@ -386,9 +391,9 @@ if(waktusekarang3-waktusebelumnya3>1500)
 if(waktusekarang4-waktusebelumnya4>2000)
 {
     
-    read_219b();
+    // read_219b();
     waktusebelumnya4=waktusekarang4;
-    delay(2000);
+    // delay(2000);
 }
 
 }
