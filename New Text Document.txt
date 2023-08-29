@@ -1,1 +1,2 @@
 C:\Users\User\Documents\PlatformIO\Projects\Solar Tracker
+Integrasi firmware (maintask.h)
