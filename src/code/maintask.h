@@ -14,30 +14,154 @@ RTC_DS3231 rtc;
 const int r_pompa = A8; ///< pin connected to relay
 const int pompa = A9; //ke pompa
 
-#define LDRT A0                 // Deklarasi LDR pada pin Ard
-#define LDRB A1
-#define LDRU A2                 
-#define LDRS A3
 
-// pembacaan LDR
-int nilaildrt;
-int nilaildrb;
-int nilaildru;
-int nilaildrs;
 
-// setpoint nilai LDR
-const int Ti=400;
-const int Ba=400;
-const int Ut=400;
-const int Se=400;
+// INPUT PIN
+#define LDR1 A1
+#define LDR2 A2
+#define LDR3 A3
+#define LDR4 A4
+// Timur= A1+A2 TOP Vertikal
+// Barat= A3+A4 BOTTOM
+// Utara= A1+A3 LEFT Horizontal
+// Selatan= A2+A4 RIGHT
 
-int PWMR1 = 2;//barat
-int PWML1 = 3;//timur
-int PWMR2 = 4;//utara
-int PWML2 = 5;//selatan
+// OUTPUT PIN
+#define PWMR1 2
+#define PWMR2 3
 
-const DateTime m_start = DateTime(2000, 1, 1, 21,53, 0); ///< time when realy turn on
-const DateTime m_stop = DateTime(2000, 1, 1, 21, 55, 0); ///< time when realy turn off
+#define PWMR3 4
+#define PWMR4 5
+
+int ldr1, ldr2, ldr3, ldr4; // nilai pembacaaan LDr
+int difVer, difHor;         // rata-rata nilai untuk error
+
+// int pwm1,pwm2,pwm3,pwm4; //nilai pwm motor
+
+float Kp = 10;
+float Ki = 1;
+float Kd = 1;
+float error1 = 0, P1 = 0, I1 = 0, D1 = 0, PID_value1 = 0;
+float previous_error1 = 0, previous_I1 = 0;
+float error2 = 0, P2 = 0, I2 = 0, D2 = 0, PID_value2 = 0;
+float previous_error2 = 0, previous_I2 = 0;
+
+void mbarat()
+{
+  // barat
+  analogWrite(PWMR1, 255);
+  analogWrite(PWMR2, 0);
+}
+
+void mtimur()
+{
+  // timur
+  analogWrite(PWMR1, 0);
+  analogWrite(PWMR2, 255);
+}
+
+void mutara()
+{
+  // utara
+  analogWrite(PWMR3, 0);
+  analogWrite(PWMR4, 255);
+}
+
+void mselatan()
+{
+  // selatan
+  analogWrite(PWMR3, 255);
+  analogWrite(PWMR4, 0);
+}
+
+void mstop1()
+{
+  // stop motor timur barat
+  analogWrite(PWMR1, 0);
+  analogWrite(PWMR2, 0);
+}
+
+void mstop2()
+{
+  // stop utara selatan
+  analogWrite(PWMR3, 0);
+  analogWrite(PWMR4, 0);
+}
+
+void bacaLDR()
+{
+  ldr1 = analogRead(LDR1) - 50;
+  ldr2 = analogRead(LDR2);
+  ldr3 = analogRead(LDR3);
+  ldr4 = analogRead(LDR4) + 50;
+
+  lcd.clear();
+  lcd.setCursor(0, 1);
+  lcd.print("LDR1:");
+  lcd.setCursor(6, 1);
+  lcd.print(ldr1);
+  lcd.setCursor(10, 1);
+  lcd.print("LDR2:");
+  lcd.setCursor(16, 1);
+  lcd.print(ldr2);
+  lcd.setCursor(0, 2);
+  lcd.print("LDR3:");
+  lcd.setCursor(6, 2);
+  lcd.print(ldr3);
+  lcd.setCursor(10, 2);
+  lcd.print("LDR4:");
+  lcd.setCursor(16, 2);
+  lcd.print(ldr4);
+  lcd.setCursor(0, 3);
+  lcd.print("PID1:");
+  lcd.setCursor(5, 3);
+  lcd.print(String(PID_value1, 0));
+  lcd.setCursor(10, 3);
+  lcd.print("PID2:");
+  lcd.setCursor(15, 3);
+  lcd.print(String(PID_value2, 0));
+  delay(100);
+
+  // Serial.print("nilai LDR 1: ");Serial.print(ldr1);
+  // Serial.print("nilai LDR 2: ");Serial.println(ldr2);
+  // Serial.print("nilai LDR 3: ");Serial.print(ldr3);
+  // Serial.print("nilai LDR 4: ");Serial.println(ldr4);
+
+  int avgTop = (ldr1 + ldr2) / 2;
+  int avgBot = (ldr3 + ldr4) / 2;
+  int avgLeft = (ldr1 + ldr3) / 2;
+  int avgRight = (ldr2 + ldr4) / 2;
+
+  difVer = avgTop - avgBot;
+  difHor = avgRight - avgLeft;
+}
+
+void calculatePID()
+{ // Motor1
+  error1 = difHor;
+  P1 = error1;
+  I1 = I1 + previous_I1;
+  D1 = error1 - previous_error1;
+
+  PID_value1 = (Kp * P1) + (Ki * I1) + (Kd * D1);
+
+  previous_I1 = I1;
+  previous_error1 = error1;
+
+  // Motor2
+  error2 = difVer;
+  P2 = error2;
+  I2 = I2 + previous_I2;
+  D2 = error2 - previous_error2;
+
+  PID_value2 = (Kp * P2) + (Ki * I2) + (Kd * D2);
+
+  previous_I2 = I2;
+  previous_error2 = error2;
+}
+
+const DateTime m_start = DateTime(2000, 1, 1, 18,34, 0); ///< time when realy turn on
+const DateTime m_stop = DateTime(2000, 1, 1, 18, 40, 0); ///< time when realy turn off
 const uint8_t m_min_in_h = 60; ///< minutes in an hour
 const unsigned long m_refresh_time_ms = 1000; ///< time of repeting check time is in range and sending message
 char daysOfTheWeek[7][12] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
@@ -98,7 +222,11 @@ void readjam()
     {
       Serial.println("Start");
       lcd.clear();lcd.setCursor(7,0);lcd.print("Pump On");
-      digitalWrite(r_pompa, LOW);
+      if(soil>400)
+      {
+        digitalWrite(r_pompa,LOW);
+      }
+      // digitalWrite(r_pompa, LOW);
       is_turn_on = true;
       }
     else if (!is_in_range(now, m_start, m_stop) && is_turn_on)
@@ -180,75 +308,8 @@ void read_219b()
     // delay(2000);
 }
 
-void mbarat () {
-// barat
-analogWrite(PWMR1, 255);
-analogWrite(PWML1, 0);
-}
 
-void mtimur () {
-// timur
-analogWrite(PWMR1, 0);
-analogWrite(PWML1, 255);
-}
 
-void mutara () {
-// utara
-analogWrite(PWMR2, 0);
-analogWrite(PWML2, 255);
-}
-
-void mselatan () {
-// selatan
-analogWrite(PWMR2, 255);
-analogWrite(PWML2, 0);
-}
-
-void mstop2 () {
-  //stop utara selatan
-  analogWrite(PWMR2, 0);
-  analogWrite(PWMR2, 0);
-}
-
-void mstop1 () {
-  //stop motor timur barat
-  analogWrite(PWMR1, 0);
-  analogWrite(PWMR1, 0);
-}
-
-void bacaLDR()
-{
-nilaildrt=analogRead(LDRT);
-nilaildrb=analogRead(LDRB);
-nilaildru=analogRead(LDRU);
-nilaildrs=analogRead(LDRS);
-
-// lcd.clear();
-    lcd.setCursor(0,2);
-    lcd.print("T:");
-    lcd.setCursor(4,2);
-    lcd.print(nilaildrt);
-    lcd.setCursor(10,2);
-    lcd.print("B:");
-    lcd.setCursor(13,2);
-    lcd.print(nilaildrb);
-    delay(3000);
-    lcd.setCursor(0,2);  
-    lcd.print("U:");
-    lcd.setCursor(4,2);
-    lcd.print(nilaildru);
-    lcd.setCursor(10,2);
-    lcd.print("S:");
-    lcd.setCursor(13,2);
-    lcd.print(nilaildrs);
-    delay(3000);
-    
-    Serial.print("nilai LDR Timur: ");Serial.print(nilaildrt);
-    Serial.print("nilai LDR Barat: ");Serial.println(nilaildrb); 
-    Serial.print("nilai LDR Utara: ");Serial.print(nilaildru);
-    Serial.print("nilai LDR Selatan: ");Serial.println(nilaildrs); 
-    
-}
 
 void siram()
 {
@@ -294,10 +355,6 @@ void setup() {
   lcd.print("SOLAR TRACKER");
   delay(500);
 
-  pinMode(LDRT,INPUT);
-  pinMode(LDRB,INPUT);
-  pinMode(LDRU,INPUT);
-  pinMode(LDRS,INPUT);
 
  if (! rtc.begin()) {
     Serial.println("Couldn't find RTC");
@@ -343,40 +400,47 @@ if(waktusekarang1-waktusebelumnya1>1000)
 
 if(waktusekarang2-waktusebelumnya2>1000)
 {
-    bacaLDR();
-    waktusebelumnya2=waktusekarang2;
-    if (nilaildrb>=Ba)
-    {
-        mtimur();
-    }
-    else if (nilaildrt>=Ti)
-    {
-        mbarat();
-    }
-    else if (nilaildrb<Ba && nilaildrt<Ti)
-    {
-        mstop1();
-    }
-    else    {
-        mstop1();
-    }
+  bacaLDR();
+  int stopZone = 500;
+  int setpoint = 0;
 
-    if (nilaildru>=Ut)
-    {
-        mselatan();
-    }
-    else if (nilaildrs>=Se)
-    {
-        mutara();
-    }
-    else if (nilaildru>Ut && nilaildrs>Se)
-    {
-        mstop2();
-    }
-    else 
-    {
-        mstop2();
-    }
+  Serial.print(" ");
+  Serial.print(setpoint);
+  Serial.print(" ");
+  Serial.print(difVer);
+  Serial.print(" ");
+  Serial.print(difHor);
+  Serial.print(" ");
+  Serial.print(PID_value1);
+  Serial.print(" ");
+  Serial.println(PID_value2);
+  calculatePID();
+
+  if (PID_value1 > -stopZone && PID_value1 < stopZone)
+  {
+    mstop1();
+  }
+  else
+  {
+    if (PID_value1 > 0)
+      mtimur();
+    if (PID_value1 < 0)
+      mbarat();
+  }
+  
+  if (PID_value2 > -stopZone && PID_value2 < stopZone)
+  {
+    mstop2();
+  }
+  else
+  {
+    
+    if (PID_value1 > 0)
+      mselatan();
+    if (PID_value1 < 0)
+      mutara();
+  }
+
 }
 
 
