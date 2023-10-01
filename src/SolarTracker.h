@@ -114,18 +114,18 @@ void solarTracker()
     bacaLDR();
     calculatePID();
 
-    Serial.print("LDR 1:");
-    Serial.print(ldr1);
-    Serial.print(" LDR 2:");
-    Serial.print(ldr2);
-    Serial.print(" LDR 3:");
-    Serial.print(ldr3);
-    Serial.print(" LDR 4:");
-    Serial.print(ldr4);
-    Serial.print(" PID1:");
-    Serial.print(PID_value1);
-    Serial.print(" PID2:");
-    Serial.println(PID_value2);
+    // Serial.print("LDR 1:");
+    // Serial.print(ldr1);
+    // Serial.print(" LDR 2:");
+    // Serial.print(ldr2);
+    // Serial.print(" LDR 3:");
+    // Serial.print(ldr3);
+    // Serial.print(" LDR 4:");
+    // Serial.print(ldr4);
+    // Serial.print(" PID1:");
+    // Serial.print(PID_value1);
+    // Serial.print(" PID2:");
+    // Serial.println(PID_value2);
 
     if (PID_value1 > -stopZone && PID_value1 < stopZone)
     {

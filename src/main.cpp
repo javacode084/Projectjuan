@@ -11,13 +11,13 @@ INA219 ina219b(0x41);
 RTC rtc;
 LiquidCrystal_I2C lcd(0x27, 20, 4); // Alamat I2C(0x27) LCD dan Jenis LCD (20x4)
 
-#define SOIL A6
+#define SOIL A7
 #define POMPA A8
 
 // RTC & pompa Variable
 DateTime now;
-const DateTime m_start = DateTime(2000, 1, 1, 18, 10, 0); ///< time when relay turn on
-const DateTime m_stop = DateTime(2000, 1, 1, 18, 11, 0);  ///< time when relay turn off
+const DateTime m_start = DateTime(2000, 1, 1, 17, 0, 0); ///< time when relay turn on
+const DateTime m_stop = DateTime(2000, 1, 1, 17, 30, 0); ///< time when relay turn off
 bool isPompa = false;
 int soil;
 
@@ -34,6 +34,7 @@ void setup()
     rtc.begin();
     ina219a.begin();
     ina219b.begin();
+
     Serial.println("Measuring voltage and current with INA219 ...");
 }
 
@@ -50,7 +51,9 @@ void loop()
     jadwalSiram();
     solarTracker();
     ina219a.read();
+    ina219a.serialprint();
     ina219b.read();
+    ina219b.serialprint();
 }
 
 void displayHandler()

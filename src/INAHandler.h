@@ -36,16 +36,16 @@ void INA219::read()
 
 void INA219::serialprint()
 {
-    Serial.print("Bus Voltage :   ");
+    Serial.print("Bus Voltage: ");
     Serial.print(busvoltage);
-    Serial.println(" V");
-    Serial.print("Shunt Voltage : ");
+    Serial.print(" V");
+    Serial.print(" Shunt Voltage: ");
     Serial.print(shuntvoltage);
-    Serial.println(" mV");
-    Serial.print("Current 1:       ");
+    Serial.print(" mV");
+    Serial.print("Current: ");
     Serial.print(current_mA);
-    Serial.println(" mA");
-    Serial.print("Power 1:         ");
+    Serial.print(" mA");
+    Serial.print(" Power: ");
     Serial.print(power_mW);
     Serial.println(" mW");
 }
