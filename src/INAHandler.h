@@ -10,7 +10,7 @@ struct INA219
     float power_mW;
     Adafruit_INA219 *ina219 = new Adafruit_INA219(addr);
 
-    INA219(uint8_t _addr = 0x40)
+    INA219(uint8_t _addr)
     {
         addr = _addr;
     } // constructor
@@ -42,7 +42,7 @@ void INA219::serialprint()
     Serial.print(" Shunt Voltage: ");
     Serial.print(shuntvoltage);
     Serial.print(" mV");
-    Serial.print("Current: ");
+    Serial.print(" Current: ");
     Serial.print(current_mA);
     Serial.print(" mA");
     Serial.print(" Power: ");

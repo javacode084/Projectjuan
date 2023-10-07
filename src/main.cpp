@@ -2,12 +2,12 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 #include <SPI.h>
-#include <INAHandler.h>
 #include <RTCHandler.h>
 #include <SolarTracker.h>
+#include <Adafruit_INA219.h>
 
-INA219 ina219a(0x40);
-INA219 ina219b(0x41);
+Adafruit_INA219 ina219a(0x40);
+Adafruit_INA219 ina219b(0x41);
 RTC rtc;
 LiquidCrystal_I2C lcd(0x27, 20, 4); // Alamat I2C(0x27) LCD dan Jenis LCD (20x4)
 
@@ -21,9 +21,21 @@ const DateTime m_stop = DateTime(2000, 1, 1, 17, 30, 0); ///< time when relay tu
 bool isPompa = false;
 int soil;
 
+// INA Sensor variable
+float shuntvoltage1;
+float busvoltage1;
+float current_mA1;
+float power_mW1;
+float shuntvoltage2;
+float busvoltage2;
+float current_mA2;
+float power_mW2;
+
 void solarTracker();
 void displayHandler();
 void jadwalSiram();
+void ina219aRead();
+void ina219bRead();
 void setup()
 {
     Serial.begin(115200);
@@ -50,12 +62,24 @@ void loop()
 
     jadwalSiram();
     solarTracker();
-    ina219a.read();
-    ina219a.serialprint();
-    ina219b.read();
-    ina219b.serialprint();
+    ina219aRead();
+    ina219bRead();
 }
 
+void ina219aRead()
+{
+    shuntvoltage1 = ina219a.getShuntVoltage_mV();
+    busvoltage1 = ina219a.getBusVoltage_V();
+    current_mA1 = ina219a.getCurrent_mA();
+    power_mW1 = ina219a.getPower_mW();
+}
+void ina219bRead()
+{
+    shuntvoltage2 = ina219b.getShuntVoltage_mV();
+    busvoltage2 = ina219b.getBusVoltage_V();
+    current_mA2 = ina219b.getCurrent_mA();
+    power_mW2 = ina219b.getPower_mW();
+}
 void displayHandler()
 {
     // Hari, jam
@@ -86,29 +110,29 @@ void displayHandler()
     lcd.setCursor(0, 2);
     lcd.print("V:");
     lcd.setCursor(2, 2);
-    lcd.print(ina219a.busvoltage);
+    lcd.print(busvoltage1, 2);
     lcd.setCursor(6, 2);
     lcd.print("I:");
     lcd.setCursor(8, 2);
-    lcd.print(ina219a.current_mA / 1000);
+    lcd.print(current_mA1 / 1000, 1);
     lcd.setCursor(13, 2);
     lcd.print("W:");
     lcd.setCursor(15, 2);
-    lcd.print(ina219a.power_mW / 1000);
+    lcd.print(power_mW1 / 1000, 1);
 
     // INA 2
     lcd.setCursor(0, 3);
     lcd.print("V:");
     lcd.setCursor(2, 3);
-    lcd.print(ina219b.busvoltage);
+    lcd.print(busvoltage2, 2);
     lcd.setCursor(6, 3);
     lcd.print("I:");
     lcd.setCursor(8, 3);
-    lcd.print(ina219b.current_mA / 1000);
+    lcd.print(current_mA2 / 1000, 1);
     lcd.setCursor(13, 3);
     lcd.print("W:");
     lcd.setCursor(15, 3);
-    lcd.print(ina219b.power_mW / 1000);
+    lcd.print(power_mW2 / 1000, 1);
 }
 
 void jadwalSiram()
