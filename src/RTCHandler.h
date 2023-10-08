@@ -38,7 +38,7 @@ bool RTC::begin()
 
     // When time needs to be re-set on a previously configured device, the
     // following line sets the RTC to the date & time this sketch was compiled
-    // rtc.adjust(DateTime(F(__DATE__), F(__TIME__)));
+    Rtc->adjust(DateTime(F(__DATE__), F(__TIME__)));
     return true;
 }
 
