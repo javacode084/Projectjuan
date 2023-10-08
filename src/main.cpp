@@ -12,7 +12,7 @@ RTC rtc;
 LiquidCrystal_I2C lcd(0x27, 20, 4); // Alamat I2C(0x27) LCD dan Jenis LCD (20x4)
 
 #define SOIL A7
-#define POMPA A8
+#define POMPA A15
 
 // RTC & pompa Variable
 DateTime now;
@@ -46,6 +46,9 @@ void setup()
     rtc.begin();
     ina219a.begin();
     ina219b.begin();
+
+    pinMode(POMPA, OUTPUT);
+    pinMode(SOIL, INPUT);
 
     Serial.println("Measuring voltage and current with INA219 ...");
 }
