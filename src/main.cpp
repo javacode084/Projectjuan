@@ -157,6 +157,11 @@ void jadwalSiram()
                 digitalWrite(POMPA, LOW);
                 isPompa = true;
             }
+            else
+            {
+                digitalWrite(POMPA, HIGH);
+                isPompa = false;
+            }
         }
         else if (!rtc.is_in_range(now, m_start, m_stop))
         {
